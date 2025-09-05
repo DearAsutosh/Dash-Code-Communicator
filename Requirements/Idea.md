@@ -18,3 +18,21 @@
 
 ## 3. System Architecture:
 
+### a) Wearable Transmitter:
+* ESP8266 microcontroller
+* Push button input
+* LED feedback (blinks for each tap)
+* Powered by small LiPo battery or power bank
+
+### b) Transmission:
+* ESP8266 sends data (press duration + gap) to central server over Wi-Fi.
+
+### c) Central Receiver & Decoder:
+* Node.js server receives tap events
+* Converts press durations into dots/dashes
+* Decodes dots/dashes into letters/words
+* Broadcasts decoded message to web clients
+
+### d) Web Dashboard:
+* Displays decoded messages in real-time
+* Can be viewed on laptop, tablet, or phone

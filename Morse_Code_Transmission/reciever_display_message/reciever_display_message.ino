@@ -7,7 +7,11 @@
 // ---------------- WiFi Config ----------------
 const char* ssid = "POCO M4 5G";
 const char* password = "kahibini";
-const char* serverUrl = "http://10.191.255.61:5000/events";  // SSE endpoint
+
+// ---------------- Server Config ----------------
+const char* serverHost = "10.191.255.61";
+const int serverPort = 5000;
+const char* serverPath = "/events";
 
 // ---------------- OLED Config ----------------
 #define SCREEN_WIDTH 128
@@ -22,26 +26,15 @@ WiFiClient client;
 
 // ------------ Helper: Parse and Format Time ------------
 String formatTime(String timestamp) {
-  // Example input: "2025-09-10T19:42:01.036Z"
   int hour = timestamp.substring(11, 13).toInt();
   int minute = timestamp.substring(14, 16).toInt();
 
-  // Adjust timezone (example: +5:30 IST)
-  hour += 5;
-  minute += 30;
-
-  if (minute >= 60) {
-    minute -= 60;
-    hour++;
-  }
+  hour += 5; minute += 30;
+  if (minute >= 60) { minute -= 60; hour++; }
   if (hour >= 24) hour -= 24;
 
-  // Format hh:mm AM/PM
   String ampm = "AM";
-  if (hour >= 12) {
-    ampm = "PM";
-    if (hour > 12) hour -= 12;
-  }
+  if (hour >= 12) { ampm = "PM"; if (hour > 12) hour -= 12; }
   if (hour == 0) hour = 12;
 
   char buf[10];
@@ -63,7 +56,6 @@ void setup() {
   display.setTextSize(1);
   display.setTextColor(SSD1306_WHITE);
 
-  // Intro Screen
   display.setCursor(20, 20);
   display.println("SilentLink");
   display.setCursor(15, 40);
@@ -71,7 +63,7 @@ void setup() {
   display.display();
   delay(2000);
 
-  // WiFi
+  // Connect to WiFi
   Serial.println("Connecting to WiFi...");
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -79,68 +71,79 @@ void setup() {
     Serial.print(".");
   }
   Serial.println("\nWiFi Connected!");
-  Serial.println(WiFi.localIP());
+  Serial.println("IP: " + WiFi.localIP().toString());
 
-  // Show waiting screen
-  display.clearDisplay();
-  display.setCursor(10, 25);
-  display.println("Waiting for DashCode...");
-  display.display();
-
-  if (!client.connect("10.191.255.61", 5000)) {
-    Serial.println("Connection to server failed!");
-  }
-  client.print(String("GET /events HTTP/1.1\r\nHost: 10.191.255.61\r\n\r\n"));
+  // Connect to SSE server
+  connectSSE();
 }
 
 // ------------ Loop ------------
 void loop() {
-  if (client.available()) {
+  if (client.connected() && client.available()) {
     String line = client.readStringUntil('\n');
-    if (line.startsWith("data:")) {
-      Serial.println("\n--- Raw SSE Message ---");
-      Serial.println(line);
+    line.trim();  // remove \r or spaces
 
+    if (line.startsWith("data:")) {
       String jsonData = line.substring(5);
+
       StaticJsonDocument<512> doc;
       DeserializationError error = deserializeJson(doc, jsonData);
-
       if (!error) {
         String username = doc["username"].as<String>();
         String decoded  = doc["decoded"].as<String>();
         String timestamp = doc["timestamp"].as<String>();
-
         String formattedTime = formatTime(timestamp);
 
-        // Debugging
         Serial.printf("User: %s | Msg: %s | Time: %s\n", 
                       username.c_str(), decoded.c_str(), formattedTime.c_str());
 
-        // Blink LED 3 times
+        // Blink LED
         for (int i = 0; i < 3; i++) {
-          digitalWrite(ledPin, HIGH);
-          delay(200);
-          digitalWrite(ledPin, LOW);
-          delay(200);
+          digitalWrite(ledPin, HIGH); delay(200);
+          digitalWrite(ledPin, LOW);  delay(200);
         }
 
-        // Show on OLED
+        // Display on OLED
         display.clearDisplay();
         display.setCursor(25, 0);
         display.println("SilentLink");
         display.setCursor(15, 10);
         display.println("by : CodeCommandos");
         display.drawLine(0, 20, 128, 20, SSD1306_WHITE);
-
         display.setCursor(0, 28);
         display.printf("From: %s", username.c_str());
         display.setCursor(0, 40);
         display.printf("Msg : %s", decoded.c_str());
         display.setCursor(0, 52);
         display.printf("Time: %s", formattedTime.c_str());
-
         display.display();
       }
     }
+  }
+
+  // Reconnect if disconnected
+  if (!client.connected()) {
+    Serial.println("Disconnected from server, reconnecting...");
+    connectSSE();
+  }
+}
+
+// ------------ SSE Connect Function ------------
+void connectSSE() {
+  Serial.println("Connecting to SSE server...");
+
+  if (client.connect(serverHost, serverPort)) {
+    Serial.println("Connected to server!");
+
+    // Send proper SSE headers
+    client.print(String("GET ") + serverPath + " HTTP/1.1\r\n" +
+                 "Host: " + serverHost + "\r\n" +
+                 "Accept: text/event-stream\r\n" +
+                 "Connection: keep-alive\r\n\r\n");
+
+    Serial.println("SSE request sent.");
+  } else {
+    Serial.println("Connection failed, retrying in 5s...");
+    delay(5000);
   }
 }

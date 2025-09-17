@@ -2,13 +2,42 @@
 // Modified: robust decoder (supports '|' delimited or greedy parsing), encoder, and both mappings.
 
 const dashToChar = {
-  "***": "A", "-*.": "B", "-**": "C", "-": "D", "...": "E",
-  "*.-": "F", "..-": "G", "*..": "H", ".**": "I", "--.": "J",
-  ".--": "K", "-..": "L", ".-*": "M", "**.": "N", ".*.": "O",
-  "-.*": "P", "*--": "Q", "**-": "R", ".": "S", "..*": "T",
-  ".*-": "U", "-.-": "V", "*-.": "W", "-*-": "X", ".-.": "Y", "--*": "Z",
-  "---": "0", "#..": "1", "#.*": "2", "#*.": "3", "#**": "4",
-  "#--": "5", "#-.": "6", "#.-": "7", "#*-": "8", "#-*": "9"
+  "***": "A",
+  "-*.": "B",
+  "-**": "C",
+  "*-*": "D",
+  "...": "E",
+  "*.-": "F",
+  "..-": "G",
+  "*..": "H",
+  ".**": "I",
+  "--.": "J",
+  ".--": "K",
+  "-..": "L",
+  ".-*": "M",
+  "**.": "N",
+  ".*.": "O",
+  "-.*": "P",
+  "*--": "Q",
+  "**-": "R",
+  "*.*": "S",
+  "..*": "T",
+  ".*-": "U",
+  "-.-": "V",
+  "*-.": "W",
+  "-*-": "X",
+  ".-.": "Y",
+  "--*": "Z",
+  "---": "0",
+  "#..": "1",
+  "#.*": "2",
+  "#*.": "3",
+  "#**": "4",
+  "#--": "5",
+  "#-.": "6",
+  "#.-": "7",
+  "#*-": "8",
+  "#-*": "9",
 };
 
 // build reverse map (char -> dash)
@@ -44,13 +73,13 @@ function fromDashCode(sentence, options = {}) {
   if (sentence === "") return "";
 
   const words = sentence.split(" ");
-  const decoded = words.map(word => {
+  const decoded = words.map((word) => {
     // if explicit separator provided or present in word, use split mode
     const sepToUse = letterSep || (word.includes("|") ? "|" : null);
     if (sepToUse) {
       return word
         .split(sepToUse)
-        .map(code => dashToChar[code] || "?")
+        .map((code) => dashToChar[code] || "?")
         .join("");
     }
 
@@ -93,11 +122,14 @@ function toDashCode(text, options = {}) {
   if (!text || typeof text !== "string") return "";
 
   const words = text.toUpperCase().trim().split(/\s+/);
-  const encodedWords = words.map(word => {
-    return word.split("").map(ch => {
-      // allow digits and A-Z only; unknown -> '?'
-      return charToDash[ch] || "?";
-    }).join(letterSep);
+  const encodedWords = words.map((word) => {
+    return word
+      .split("")
+      .map((ch) => {
+        // allow digits and A-Z only; unknown -> '?'
+        return charToDash[ch] || "?";
+      })
+      .join(letterSep);
   });
 
   return encodedWords.join(" ");
@@ -107,19 +139,12 @@ module.exports = {
   dashToChar,
   charToDash,
   fromDashCode,
-  toDashCode
+  toDashCode,
 };
 
-
-
-// HELP ME: *..|...|-..|-.* .-*|...
-// ENEMIES AHEAD: ...|**.|...|.-*|.**|...|. ***|*..|...|***|-
-// SOS: .|.*.|.
-// ATTACK: ***|-*|*-|*-|***|-.*
-// RUN: **-|.*-|**.
-// RETREAT: **-|***|**-|.*|.-*|.**|.
-// ALERT: ***|...|**-|.-|***
-// STOP: ...|-*-|.*.|.-|
-// GO: ..-|.*.|
-// ENEMY: ...|**.|...|.-*|.-.
-
+// HELP ME : *.. ... -.. -.*  .-* ...
+// SOS : *.* .*. *.*
+// EMERGENCY : ... .-* ... **- ..- ... **. -** .-.
+// ATTACK : *** -.- -.- .-* -.-
+// SAFE : *** *.. *.- ** ...
+// RETREAT : **- **. **- ... *.. ***

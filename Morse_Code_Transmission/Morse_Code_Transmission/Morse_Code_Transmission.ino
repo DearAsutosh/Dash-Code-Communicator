@@ -45,14 +45,14 @@ bool templateMode = false;   // false = normal dashcode, true = template mode
 
 // ---------------- Template DashCode ----------------
 // Button A templates
-String A_SINGLE = "*.. ... -.. -.*  .-* ...";      // HELP ME
+String A_SINGLE = "*.....-..-.*  .-*...";      // HELP ME
 String A_DOUBLE = "*.* .*. *.*";                  // SOS
-String A_TRIPLE = "... .-* ... **- ..- ... **. -** .-."; // EMERGENCY
+String A_TRIPLE = "....-*...**-..-...**.-**.-."; // EMERGENCY
 
 // Button B templates
-String B_SINGLE = "*** ..* ..* *** -** .--";                  // ATTACK
-String B_DOUBLE = "*-* *** **. ..- ... **-"; // DANGER
-String B_TRIPLE = "..* *** .-- ...  -** .*. -.- ... **-";              // CUSTOM/3rd template
+String B_SINGLE = "***..*..****-**.--";                  // ATTACK
+String B_DOUBLE = "*-******...-...**-"; // DANGER
+String B_TRIPLE = "..****.--...  -**.*.-.-...**-";  //TAKE COVER            // CUSTOM/3rd template
 
 // ---------------- Setup ----------------
 void setup() {

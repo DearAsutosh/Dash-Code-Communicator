@@ -120,9 +120,3 @@ Update .env or config.js with your MongoDB connection string.
 **Dash Code Communicator** addresses the need for fast, reliable, and accessible communication in offline or constrained environments. Its modular hardware-software ecosystem provides a foundation for future expansion into AI, mobile, and educational applications.
 
 💖 Made by Code Commandos
--------------------------
-
-
-If you want, I can also **add a “Quick Demo GIF/Images & Features” section** with more emojis to make the README **look very professional and visually engaging for GitHub**.  
-
-Do you want me to do that next?
